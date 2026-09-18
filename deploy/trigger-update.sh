@@ -9,5 +9,6 @@ set -euo pipefail
 DEPLOYER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN_AS="${SUDO_USER:?trigger-update.sh must be run via sudo}"
 TARGET="${1:-all}"
+BRANCH="${2:-main}"
 
-exec /usr/bin/systemd-run --unit=bot-deployer-update --collect --uid="$RUN_AS" "$DEPLOYER_DIR/deploy/update.sh" "$TARGET"
+exec /usr/bin/systemd-run --unit=bot-deployer-update --collect --uid="$RUN_AS" "$DEPLOYER_DIR/deploy/update.sh" "$TARGET" "$BRANCH"
