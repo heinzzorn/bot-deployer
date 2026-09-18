@@ -2,8 +2,9 @@
 
 Deploy automation for [212-bot](https://github.com/heinzzorn/212-bot) (bot
 logic) and [combot](https://github.com/heinzzorn/combot) (Telegram
-communicator). Updates both repos and restarts `combot.service` when either
-changes, triggered on demand by combot (send it `/update`) — not on a timer.
+communicator). Updates one or both repos and restarts `combot.service` if
+anything changed, triggered on demand by combot (send it `/deploy`,
+`/deploy 212-bot`, or `/deploy combot`) — not on a timer.
 
 ## Layout
 
@@ -49,17 +50,19 @@ This clones `212-bot` and `combot` if missing, runs combot's own install
 (venv + `combot.service`), and installs a sudoers rule letting combot trigger
 `deploy/trigger-update.sh` (and restart `combot.service`) without a password.
 
-Deploys happen when you send `/update` to the bot on Telegram: combot's
-handler runs `sudo deploy/trigger-update.sh`, which launches
-`deploy/update.sh` as its own transient systemd unit (`systemd-run`), detached
-from combot's cgroup. That detachment matters because `update.sh` restarts
+Deploys happen when you send `/deploy [212-bot|combot]` to the bot on
+Telegram (omit the target to check both): combot's handler runs
+`sudo deploy/trigger-update.sh <target>`, which launches `deploy/update.sh
+<target>` as its own transient systemd unit (`systemd-run`), detached from
+combot's cgroup. That detachment matters because `update.sh` restarts
 `combot.service` itself — if it ran inside combot's own cgroup, that restart
-would kill it mid-update. `update.sh` fetches/resets `bot-deployer` (itself),
-`212-bot`, and `combot`, reinstalls dependencies, restarts `combot.service`
-if anything changed, and sends a Telegram notification with the result.
+would kill it mid-update. `update.sh` always fetches/resets `bot-deployer`
+(itself) first, then fetches/resets whichever of `212-bot`/`combot` was
+targeted, reinstalls dependencies and restarts `combot.service` if anything
+changed, and always sends a Telegram notification with the result.
 
-You can also run `./deploy/update.sh` directly on the Pi for a manual check
-outside of Telegram.
+You can also run `./deploy/update.sh [212-bot|combot]` directly on the Pi for
+a manual check outside of Telegram.
 
 ## Recovery
 

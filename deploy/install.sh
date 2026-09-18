@@ -21,9 +21,9 @@ chmod +x "$DEPLOYER_DIR/deploy/update.sh" "$DEPLOYER_DIR/deploy/trigger-update.s
 
 cat <<EOF | sudo tee /etc/sudoers.d/bot-deployer >/dev/null
 $SERVICE_USER ALL=(root) NOPASSWD: /usr/bin/systemctl restart combot.service
-$SERVICE_USER ALL=(root) NOPASSWD: $DEPLOYER_DIR/deploy/trigger-update.sh
+$SERVICE_USER ALL=(root) NOPASSWD: $DEPLOYER_DIR/deploy/trigger-update.sh *
 EOF
 sudo chmod 440 /etc/sudoers.d/bot-deployer
 
 echo "Installed. combot.service should be running (started by combot/deploy/install.sh)."
-echo "Send /update to the bot on Telegram to trigger a deploy check on demand."
+echo "Send /deploy, /deploy 212-bot, or /deploy combot to the bot on Telegram to trigger a deploy check on demand."
