@@ -1,0 +1,7 @@
+[Unit]
+Description=Check 212-bot/combot/bot-deployer for updates and restart combot if changed
+
+[Service]
+Type=oneshot
+User=__USER__
+ExecStart=__DEPLOYER_DIR__/deploy/update.sh
