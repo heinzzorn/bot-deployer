@@ -43,6 +43,12 @@ if [ "$updated" = "1" ]; then
     cd "$COMBOT_DIR"
     ./venv/bin/pip install -r requirements.txt
     sudo /usr/bin/systemctl restart combot.service
+
+    "$BOT_DIR/venv/bin/pip" install -r "$BOT_DIR/requirements.txt"
+    if systemctl is-active --quiet 212-bot.service; then
+        sudo /usr/bin/systemctl restart 212-bot.service
+    fi
+
     status="updated"
 else
     status="no changes"

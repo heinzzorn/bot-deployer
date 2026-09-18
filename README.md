@@ -1,10 +1,10 @@
 # bot-deployer
 
-Deploy automation for [212-bot](https://github.com/heinzzorn/212-bot) (bot
-logic) and [combot](https://github.com/heinzzorn/combot) (Telegram
-communicator). Updates one or both repos and restarts `combot.service` if
-anything changed, triggered on demand by combot (send it `/deploy`,
-`/deploy 212-bot`, or `/deploy combot`) — not on a timer.
+Deploy automation for [212-bot](https://github.com/heinzzorn/212-bot) (its
+own standalone service) and [combot](https://github.com/heinzzorn/combot)
+(Telegram communicator). Updates one or both repos and restarts the affected
+service(s) if anything changed, triggered on demand by combot (send it
+`/deploy`, `/deploy 212-bot`, or `/deploy combot`) — not on a timer.
 
 ## Layout
 
@@ -46,9 +46,10 @@ cd bot-deployer
 ./deploy/install.sh
 ```
 
-This clones `212-bot` and `combot` if missing, runs combot's own install
-(venv + `combot.service`), and installs a sudoers rule letting combot trigger
-`deploy/trigger-update.sh` (and restart `combot.service`) without a password.
+This clones `212-bot` and `combot` if missing, runs each one's own install
+(venv + its systemd service), and installs a sudoers rule letting combot
+trigger `deploy/trigger-update.sh` and restart both services without a
+password.
 
 Deploys happen when you send `/deploy [212-bot|combot]` to the bot on
 Telegram (omit the target to check both): combot's handler runs
@@ -58,8 +59,11 @@ combot's cgroup. That detachment matters because `update.sh` restarts
 `combot.service` itself — if it ran inside combot's own cgroup, that restart
 would kill it mid-update. `update.sh` always fetches/resets `bot-deployer`
 (itself) first, then fetches/resets whichever of `212-bot`/`combot` was
-targeted, reinstalls dependencies and restarts `combot.service` if anything
-changed, and always sends a Telegram notification with the result.
+targeted, and if anything changed: reinstalls dependencies, restarts
+`combot.service` unconditionally (it imports 212-bot's code directly), and
+restarts `212-bot.service` too but only if it was already running (a
+deliberate `/bot stop` is respected, not undone by a deploy). Always sends a
+Telegram notification with the result.
 
 You can also run `./deploy/update.sh [212-bot|combot]` directly on the Pi for
 a manual check outside of Telegram.

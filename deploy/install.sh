@@ -15,15 +15,18 @@ if [ ! -d "$COMBOT_DIR" ]; then
     git clone git@github.com-combot:heinzzorn/combot.git "$COMBOT_DIR"
 fi
 
+"$BOT_DIR/deploy/install.sh"
 "$COMBOT_DIR/deploy/install.sh"
 
 chmod +x "$DEPLOYER_DIR/deploy/update.sh" "$DEPLOYER_DIR/deploy/trigger-update.sh"
 
 cat <<EOF | sudo tee /etc/sudoers.d/bot-deployer >/dev/null
 $SERVICE_USER ALL=(root) NOPASSWD: /usr/bin/systemctl restart combot.service
+$SERVICE_USER ALL=(root) NOPASSWD: /usr/bin/systemctl restart 212-bot.service
 $SERVICE_USER ALL=(root) NOPASSWD: $DEPLOYER_DIR/deploy/trigger-update.sh *
 EOF
 sudo chmod 440 /etc/sudoers.d/bot-deployer
 
-echo "Installed. combot.service should be running (started by combot/deploy/install.sh)."
+echo "Installed. combot.service and 212-bot.service should both be running."
 echo "Send /deploy, /deploy 212-bot, or /deploy combot to the bot on Telegram to trigger a deploy check on demand."
+echo "Send /bot start|stop|status to the bot on Telegram to control 212-bot.service."
