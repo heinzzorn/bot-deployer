@@ -17,19 +17,13 @@ fi
 
 "$COMBOT_DIR/deploy/install.sh"
 
-chmod +x "$DEPLOYER_DIR/deploy/update.sh"
+chmod +x "$DEPLOYER_DIR/deploy/update.sh" "$DEPLOYER_DIR/deploy/trigger-update.sh"
 
-sed -e "s#__DEPLOYER_DIR__#$DEPLOYER_DIR#g" -e "s#__USER__#$SERVICE_USER#g" \
-    "$DEPLOYER_DIR/deploy/bot-deployer-update.service" | sudo tee /etc/systemd/system/bot-deployer-update.service >/dev/null
-
-sudo cp "$DEPLOYER_DIR/deploy/bot-deployer-update.timer" /etc/systemd/system/bot-deployer-update.timer
-
-echo "$SERVICE_USER ALL=(root) NOPASSWD: /usr/bin/systemctl restart combot.service" \
-    | sudo tee /etc/sudoers.d/bot-deployer-update >/dev/null
-sudo chmod 440 /etc/sudoers.d/bot-deployer-update
-
-sudo systemctl daemon-reload
+cat <<EOF | sudo tee /etc/sudoers.d/bot-deployer >/dev/null
+$SERVICE_USER ALL=(root) NOPASSWD: /usr/bin/systemctl restart combot.service
+$SERVICE_USER ALL=(root) NOPASSWD: $DEPLOYER_DIR/deploy/trigger-update.sh
+EOF
+sudo chmod 440 /etc/sudoers.d/bot-deployer
 
 echo "Installed. combot.service should be running (started by combot/deploy/install.sh)."
-echo "Auto-deploy (bot-deployer-update.timer) is installed but NOT enabled."
-echo "Enable it with: sudo systemctl enable --now bot-deployer-update.timer"
+echo "Send /update to the bot on Telegram to trigger a deploy check on demand."

@@ -2,8 +2,8 @@
 
 Deploy automation for [212-bot](https://github.com/heinzzorn/212-bot) (bot
 logic) and [combot](https://github.com/heinzzorn/combot) (Telegram
-communicator). Clones/updates both repos and restarts `combot.service` when
-either changes.
+communicator). Updates both repos and restarts `combot.service` when either
+changes, triggered on demand by combot (send it `/update`) — not on a timer.
 
 ## Layout
 
@@ -46,16 +46,20 @@ cd bot-deployer
 ```
 
 This clones `212-bot` and `combot` if missing, runs combot's own install
-(venv + `combot.service`), and installs (but does not enable) a systemd timer
-that checks for updates every 5 minutes.
+(venv + `combot.service`), and installs a sudoers rule letting combot trigger
+`deploy/trigger-update.sh` (and restart `combot.service`) without a password.
 
-Enable auto-deploy:
+Deploys happen when you send `/update` to the bot on Telegram: combot's
+handler runs `sudo deploy/trigger-update.sh`, which launches
+`deploy/update.sh` as its own transient systemd unit (`systemd-run`), detached
+from combot's cgroup. That detachment matters because `update.sh` restarts
+`combot.service` itself — if it ran inside combot's own cgroup, that restart
+would kill it mid-update. `update.sh` fetches/resets `bot-deployer` (itself),
+`212-bot`, and `combot`, reinstalls dependencies, restarts `combot.service`
+if anything changed, and sends a Telegram notification with the result.
 
-```
-sudo systemctl enable --now bot-deployer-update.timer
-```
-
-Without it, updates only happen when `./deploy/update.sh` is run manually.
+You can also run `./deploy/update.sh` directly on the Pi for a manual check
+outside of Telegram.
 
 ## Recovery
 
