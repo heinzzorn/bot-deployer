@@ -3,8 +3,20 @@ set -euo pipefail
 
 DEPLOYER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APPS_DIR="$(dirname "$DEPLOYER_DIR")"
-BOT_DIR="$APPS_DIR/212-bot"
 COMBOT_DIR="$APPS_DIR/combot"
+
+# bot-deployer's own copy of the Telegram token (for notify.py below) and an
+# optional override for where 212-bot actually lives -- it's no longer
+# assumed to be a sibling of bot-deployer by default, since bot-deployer now
+# runs from /var/lib/bot-deployer/apps while 212-bot's own user/service
+# migration is still a follow-up and it stays wherever it was set up.
+if [ -f /etc/bot-deployer/bot-deployer.env ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . /etc/bot-deployer/bot-deployer.env
+    set +a
+fi
+BOT_DIR="${BOT212_DIR:-$APPS_DIR/212-bot}"
 
 TARGET="${1:-all}"
 BRANCH="${2:-main}"
