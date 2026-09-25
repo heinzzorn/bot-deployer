@@ -22,6 +22,12 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Files pushed via the GitHub API land as mode 644 (no execute bit) -- a
+# plain `git clone` doesn't set one that was never there. This script needs
+# to have been made executable by hand once (see README), but everything it
+# goes on to invoke below gets fixed here, every run, before it's needed.
+chmod +x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/*.sh
+
 APPS_DIR="/var/lib/bot-deployer/apps"
 DEPLOYER_DIR="$APPS_DIR/bot-deployer"
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -49,8 +55,6 @@ chown -R bot-deployer:bot-deployer "$COMBOT_DIR"
 sudo -u bot-deployer -H python3 -m venv "$COMBOT_DIR/venv"
 sudo -u bot-deployer -H "$COMBOT_DIR/venv/bin/pip" install --upgrade pip
 sudo -u bot-deployer -H "$COMBOT_DIR/venv/bin/pip" install -r "$COMBOT_DIR/requirements.txt"
-
-chmod +x "$DEPLOYER_DIR/deploy/update.sh" "$DEPLOYER_DIR/deploy/trigger-update.sh"
 
 "$DEPLOYER_DIR/deploy/provision-services.sh"
 
