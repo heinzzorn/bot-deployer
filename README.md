@@ -94,8 +94,11 @@ scripted and idempotent. As your own admin user (with real sudo):
 
 ```
 # 1. The bot-deployer user has to exist before anything can be cloned as it
-#    (chicken-and-egg), so bootstrap from a throwaway clone first:
+#    (chicken-and-egg), so bootstrap from a throwaway clone first. Files
+#    cloned from GitHub land without the execute bit set (mode 644), so
+#    chmod is required before running anything:
 git clone git@github.com-bot-deployer:heinzzorn/bot-deployer.git /tmp/bot-deployer-bootstrap
+sudo chmod +x /tmp/bot-deployer-bootstrap/deploy/*.sh
 sudo /tmp/bot-deployer-bootstrap/deploy/provision-users.sh
 
 # 2. Now the bot-deployer user (and its home) exist -- put its SSH config
@@ -104,7 +107,9 @@ sudo -u bot-deployer -H git clone git@github.com-bot-deployer:heinzzorn/bot-depl
     /var/lib/bot-deployer/apps/bot-deployer
 rm -rf /tmp/bot-deployer-bootstrap
 
-# 3. Run the real installer from its final location.
+# 3. install.sh needs the same one-time chmod (it self-heals every other
+#    script it calls, but can't fix its own bit before it's running):
+sudo chmod +x /var/lib/bot-deployer/apps/bot-deployer/deploy/install.sh
 sudo /var/lib/bot-deployer/apps/bot-deployer/deploy/install.sh
 ```
 
