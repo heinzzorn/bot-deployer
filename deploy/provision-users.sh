@@ -21,6 +21,14 @@ else
     echo "User bot-deployer already exists, skipping"
 fi
 
+# useradd's default HOME_MODE is often 700, which blocks ANY group member
+# from traversing into it at all -- regardless of a subdirectory's own
+# permissions. combot needs to reach /var/lib/bot-deployer/apps/combot as a
+# group member (see usermod below), so the home directory itself needs
+# group-execute too. Set every run, not just on first creation, so a wrong
+# mode (e.g. from before this line existed) self-heals.
+chmod 750 /var/lib/bot-deployer
+
 if ! id -u combot >/dev/null 2>&1; then
     useradd --system --no-create-home --shell /usr/sbin/nologin combot
     echo "Created user combot"
